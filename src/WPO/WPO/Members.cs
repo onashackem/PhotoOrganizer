@@ -10,7 +10,7 @@ namespace WPO
     public enum Members
     {
         MichalAMaja = 1 << 0,
-        Nasi = 1 << 1,
+        HermanciSr = 1 << 1,
         Hanka = 1 << 2,
         Flechtnerovi = 1 << 3,
         Rumburk = 1 << 4,
@@ -31,9 +31,16 @@ namespace WPO
         MisaL = 1 << 19,
         Lena = 1 << 20,
         Zuzca = 1 << 21,
-        Simca = 1 << 22, 
-        Martinove = 1 << 23,        
+        Simca = 1 << 22,
+        Martinove = 1 << 23,
+        Stefkovi = 1 << 24,
 
-        All = 1 << 30
+        FB = 1 << 30,        
+        Verejne = 1 << 31,
+
+        HermankovoKridlo = HermanciSr | Kropackovi | Krizovi,
+        VeseleKridlo = Hanka | Rumburk,
+        All = MichalAMaja | HermanciSr | Hanka | Flechtnerovi | Rumburk | Dvorakovi | Buresovi | PavlaARobert | Svedkyne | Mews | Martinove |
+            Troupovi | Ondrous | Matty | Kropackovi | Lucka | Krizovi | GymCk | Anicka | Kebrlovi | MisaL | Lena | Zuzca | Simca | Stefkovi
     }
 }

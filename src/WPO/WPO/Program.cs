@@ -12,27 +12,79 @@ namespace WPO
         public static void Main(string[] args)
         {
             var folder = "Generated";
-            var allCategory = Source.Configuration[Members.All];
-            var allCategoryFiles = allCategory.SelectMany(v => v.ImageFiles).ToList();
-            foreach (var kvp in Source.Configuration.Where(kvp => kvp.Key != Members.All))
+            var members = (Members.All | Members.Verejne | Members.FB).GetFlags().ToList();
+            foreach (var member in members)
             {
-                var files = kvp.Value.SelectMany(v => v.ImageFiles).Concat(allCategoryFiles).ToList();
-                var memberFolderPath = Path.Combine(folder, kvp.Key.ToString());
+                var allImages = Source.Collectons.SelectMany(c => c.GetImageFiles(member)).ToList();
+                if (allImages.Count == 0)
+                {
+                    continue;
+                }
+
+                var memberFolderPath = Path.Combine(folder, member.ToString());
                 var memberFolderInfo = new DirectoryInfo(memberFolderPath);
 
-                memberFolderInfo.Create();
-                foreach (var fileInfo in files)
+                if (memberFolderInfo.Exists)
                 {
-                    if (fileInfo.Exists)
+                    memberFolderInfo.Delete(recursive: true);
+                }
+                memberFolderInfo.Create();
+
+                foreach (var imageInfo in allImages)
+                {
+                    if (imageInfo.Exists)
                     {
-                        fileInfo.CopyTo(Path.Combine(memberFolderPath, fileInfo.Name));
+                        imageInfo.CopyTo(Path.Combine(memberFolderPath, imageInfo.Name));
                     }
                     else 
                     {
-                        Console.WriteLine("File " + fileInfo.FullName + " doesn't exist.");
+                        Console.WriteLine("File " + imageInfo.FullName + " doesn't exist.");
                     }                    
                 }
             }
+
+            Console.WriteLine("Done.");
+            Console.ReadLine();
+        }
+    }
+
+    public static class Extensions
+    {
+        public static IEnumerable<TFlagEnum> GetFlags<TFlagEnum>(this TFlagEnum flags)
+           where TFlagEnum : struct
+        {
+            var enumType = typeof(TFlagEnum);
+            if (!enumType.IsFlagsEnum())
+            {
+                throw new InvalidOperationException(typeof(TFlagEnum).GetType().Name + " is not a flag enum.");
+            }
+
+            return enumType.GetValues<TFlagEnum>().Where(f => ((int)(object)flags & (int)(object)f) > 0).ToList();
+        }
+
+        public static bool IsFlagsEnum(this Type type)
+        {
+            return type.IsEnum && type.CustomAttributes.Any(a => a.AttributeType == typeof(FlagsAttribute));
+        }
+
+        public static IEnumerable<TEnum> GetValues<TEnum>(this Type enumType)
+        {
+            return enumType.GetValues().OfType<TEnum>().ToList();
+        }
+
+        public static IEnumerable<object> GetValues(this Type enumType)
+        {
+            var values = Enum.GetValues(enumType).OfType<object>();
+            if (enumType.IsFlagsEnum())
+            {
+                // http://stackoverflow.com/a/600306
+                values = values.Where(value =>
+                {
+                    var v = (int)value;
+                    return (v != 0) && ((v & (v - 1)) == 0);
+                });
+            }
+            return values.ToList();
         }
     }
 }

@@ -1,19 +1,48 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace WPO
 {
     public class PhotoCollection
     {
-        public PhotoCollection(string folderName, string extension, params string[] images)
+        public PhotoCollection(string folderName, string prefix, string extension, params Image[] images)
         {
-            ImageFiles = images.Select(i => new FileInfo(Path.Combine(folderName, i + "." + extension))).ToList();
+            Images = images.ToList();
+            FolderName = folderName;
+            Prefix = prefix ?? "";
+            Extension = extension;
         }
 
-        public List<FileInfo> ImageFiles { get; private set; }
+        private List<Image> Images { get; set; }
+        private string FolderName { get; set; }
+        private string Prefix { get; set; }
+        private string Extension { get; set; }
+
+        public List<FileInfo> GetImageFiles(Members member)
+        {
+            return Images.Where(i => i.Members.HasFlag(member)).Select(ImageFileInfo).ToList();
+        }
+
+        private FileInfo ImageFileInfo(Image image)
+        {
+            return new FileInfo(Path.Combine(FolderName, Prefix + image.Number + "." + Extension));
+        }
+    }
+
+    public class Image
+    {
+        public Image(string number, Members members)
+        {
+            Number = number;
+            Members = members;
+        }
+
+        public Image(string name, string extension, Members members)
+        { 
+
+}
+
+        public string Number { get; private set; }
+        public Members Members { get; private set; }
     }
 }
